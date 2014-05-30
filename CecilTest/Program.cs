@@ -15,18 +15,24 @@ namespace CecilTest
     {
         static void Main(string[] args)
         {
-            var dllPath = @"E:\ksp\KSP_win\KSP_Data\Managed\Assembly-CSharp.dll";
+            var dllPath = @"Assembly-CSharp.dll";
             var inStream = File.Open(dllPath, FileMode.Open, FileAccess.Read);
             var test = AssemblyDefinition.ReadAssembly(inStream);
             var testMod = test.MainModule;
             testMod.AssemblyReferences.Add(new AssemblyNameReference("HookRegistry", new Version(1, 0, 0, 0)));
-            var testMethod = test.Modules.First().Types.Where(t => t.Name.Contains("Texture_TGA")).First().Methods.Where(m => m.Name.Contains("Load")).First();
-            var testMethodBody = testMethod.Body;
-
             var hooker = new Hooker(testMod);
-            hooker.AddHook(testMethod);
+            var testTypes = testMod.Types.Where(t => t.Name.Contains("DatabaseLoaderTexture"));
+            foreach (var testType in testTypes)
+            {
+                var testMethod = testType.Methods.Where(m => m.Name.Contains("Load")).First();
+                var testMethodBody = testMethod.Body;
+
+                hooker.AddHook(testMethod);
+            }
+            var gameDbType = testMod.Types.Where(t => t.Name == "GameDatabase").First();
+            gameDbType.Methods.Where(m => m.Name == "RemoveTexture").ToList().ForEach(m => hooker.AddHook(m));
             
-            test.Write("test.dll");
+            test.Write("Assembly-CSharp.out.dll");
         }
 
         static int DoItForMeCompiler(int a, int b, FileInfo test)
@@ -111,10 +117,7 @@ namespace CecilTest
             hook.Add(Instruction.Create(OpCodes.Brtrue_S, method.Body.Instructions.First()));
             hook.Add(Instruction.Create(OpCodes.Ldloc_0));
             hook.Add(Instruction.Create(OpCodes.Castclass, method.ReturnType));
-            if (method.ReturnType.IsValueType)
-            {
-                hook.Add(Instruction.Create(OpCodes.Unbox_Any, method.ReturnType));
-            }
+            hook.Add(Instruction.Create(OpCodes.Unbox_Any, method.ReturnType));
             hook.Add(Instruction.Create(OpCodes.Ret));
 
             hook.Reverse();
