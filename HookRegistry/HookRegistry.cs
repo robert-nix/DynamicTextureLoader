@@ -88,6 +88,7 @@ namespace HookRegistry
             {GAME_TAG.STATE, typeof(TAG_STATE)},
             {GAME_TAG.ZONE, typeof(TAG_ZONE)},
             {GAME_TAG.STEP, typeof(TAG_STEP)},
+            {GAME_TAG.NEXT_STEP, typeof(TAG_STEP)},
             {GAME_TAG.PLAYSTATE, typeof(TAG_PLAYSTATE)},
             {GAME_TAG.CARDTYPE, typeof(TAG_CARDTYPE)},
             {GAME_TAG.MULLIGAN_STATE, typeof(TAG_MULLIGAN)},
@@ -283,6 +284,24 @@ namespace HookRegistry
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             writer.WriteValue(Enum.GetName(typeof(Network.PowerHistory.PowType), value));
+        }
+    }
+
+    public class PowSubTypeSerializer : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Network.PowerHistoryAction.PowSubType);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            writer.WriteValue(Enum.GetName(typeof(Network.PowerHistoryAction.PowSubType), value));
         }
     }
 
