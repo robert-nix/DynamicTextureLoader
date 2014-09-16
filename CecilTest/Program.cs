@@ -21,16 +21,14 @@ namespace CecilTest
             var testMod = test.MainModule;
             testMod.AssemblyReferences.Add(new AssemblyNameReference("HookRegistry", new Version(1, 0, 0, 0)));
             var hooker = new Hooker(testMod);
-            var testTypes = testMod.Types.Where(t => t.Name.Contains("DatabaseLoaderTexture"));
+            var testTypes = testMod.Types.Where(t => t.Name.EndsWith("GameState"));
             foreach (var testType in testTypes)
             {
-                var testMethod = testType.Methods.Where(m => m.Name.Contains("Load")).First();
+                var testMethod = testType.Methods.Where(m => m.Name.EndsWith("OnPowerHistory")).First();
                 var testMethodBody = testMethod.Body;
 
                 hooker.AddHook(testMethod);
             }
-            var gameDbType = testMod.Types.Where(t => t.Name == "GameDatabase").First();
-            gameDbType.Methods.Where(m => m.Name == "RemoveTexture").ToList().ForEach(m => hooker.AddHook(m));
             
             test.Write("Assembly-CSharp.out.dll");
         }
@@ -74,6 +72,7 @@ namespace CecilTest
                 // check me
                 throw new InvalidOperationException("Generic parameters not supported");
             }
+            method.Body.Variables.Add(new VariableDefinition(Module.TypeSystem.Object));
             var numArgs = method.Parameters.Count;
             var hook = new List<Instruction>();
             hook.Add(Instruction.Create(OpCodes.Ldc_I4, numArgs + (method.IsStatic ? 1 : 2)));
@@ -111,14 +110,17 @@ namespace CecilTest
             hook.Add(Instruction.Create(OpCodes.Ldloc_0));
             hook.Add(Instruction.Create(OpCodes.Call, onCallMethod));
             hook.Add(Instruction.Create(OpCodes.Stloc_0));
-            hook.Add(Instruction.Create(OpCodes.Ldloc_0));
-            hook.Add(Instruction.Create(OpCodes.Ldnull));
-            hook.Add(Instruction.Create(OpCodes.Ceq));
-            hook.Add(Instruction.Create(OpCodes.Brtrue_S, method.Body.Instructions.First()));
-            hook.Add(Instruction.Create(OpCodes.Ldloc_0));
-            hook.Add(Instruction.Create(OpCodes.Castclass, method.ReturnType));
-            hook.Add(Instruction.Create(OpCodes.Unbox_Any, method.ReturnType));
-            hook.Add(Instruction.Create(OpCodes.Ret));
+            if (!method.ReturnType.FullName.EndsWith("Void"))
+            {
+                hook.Add(Instruction.Create(OpCodes.Ldloc_0));
+                hook.Add(Instruction.Create(OpCodes.Ldnull));
+                hook.Add(Instruction.Create(OpCodes.Ceq));
+                hook.Add(Instruction.Create(OpCodes.Brtrue_S, method.Body.Instructions.First()));
+                hook.Add(Instruction.Create(OpCodes.Ldloc_0));
+                hook.Add(Instruction.Create(OpCodes.Castclass, method.ReturnType));
+                hook.Add(Instruction.Create(OpCodes.Unbox_Any, method.ReturnType));
+                hook.Add(Instruction.Create(OpCodes.Ret));
+            }
 
             hook.Reverse();
             foreach (var inst in hook)

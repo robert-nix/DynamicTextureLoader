@@ -33,10 +33,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Mono.Cecil">
-      <HintPath>..\..\..\KSP_win\KSP_Data\Managed\Mono.Cecil.dll</HintPath>
+      <HintPath>..\lib\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>..\..\cecil\bin\net_4_0_Release\Mono.Cecil.Rocks.dll</HintPath>
+      <HintPath>..\lib\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,9 +45,8 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\KSP_win\KSP_Data\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="UnityEngine">
+      <HintPath>..\lib\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

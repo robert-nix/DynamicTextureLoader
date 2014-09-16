@@ -4,11 +4,41 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace HookRegistry
 {
+    public class TagSerializer : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return typeof(List<Network.Entity.Tag>).IsAssignableFrom(objectType);
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            var tags = value as List<Network.Entity.Tag>;
+            writer.WriteStartObject();
+            foreach (var tag in tags)
+            {
+                var name = Enum.GetName(typeof(GAME_TAG), tag.Name);
+                var val = tag.Value;
+                writer.WritePropertyName(name);
+                writer.WriteValue(val);
+            }
+            writer.WriteEndObject();
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+    }
     public class HookRegistry
     {
+        public static TextWriter log;
+        static JsonSerializer test;
         public static object OnCall(params object[] args)
         {
             if (args.Length >= 1)
@@ -16,43 +46,31 @@ namespace HookRegistry
                 var rmh = (RuntimeMethodHandle)args[0];
                 var method = MethodBase.GetMethodFromHandle(rmh);
                 Debug.Log(String.Format("{0}.{1}(...)", method.DeclaringType.FullName, method.Name));
-                if (method.DeclaringType.FullName.StartsWith("DatabaseLoaderTexture") && method.Name == "Load")
+                if (log == null)
                 {
-                    return Test(args[1]);
+                    var fs = File.Open("entity.log", FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+                    log = new StreamWriter(fs);
                 }
-                else if (method.Name == "RemoveTexture")
+                if (method.DeclaringType.FullName.EndsWith("GameState") && method.Name == "OnPowerHistory")
                 {
-                    return new Nullable<bool>(true);
+                    var historyList = args[2] as List<Network.PowerHistory>;
+                    test.Serialize(log, historyList);
+                    log.WriteLine();
+                    log.Flush();
                 }
                 return null;
             }
             else
             {
                 Debug.Log("this is not right");
-                return new Texture2D(256, 256);
+                return null;
             }
         }
 
-        static IEnumerator Test(object self)
-        {
-            var dblType = self.GetType();
-            var objProp = dblType.GetProperty("obj", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            objProp.SetValue(self, test_texture_info, null);
-            var successProp = dblType.GetProperty("successful", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            successProp.SetValue(self, true, null);
-            yield return true;
-        }
-
-        static Texture2D test_texture;
-        static GameDatabase.TextureInfo test_texture_info;
         static HookRegistry()
         {
-            test_texture = new Texture2D(2, 2);
-            test_texture.SetPixel(0, 0, Color.green);
-            test_texture.SetPixel(1, 1, Color.green);
-            test_texture.SetPixel(0, 1, Color.magenta);
-            test_texture.SetPixel(1, 0, Color.magenta);
-            test_texture_info = new GameDatabase.TextureInfo(test_texture, false, true, false);
+            test = JsonSerializer.Create();
+            test.Converters.Add(new TagSerializer());
         }
     }
 }
