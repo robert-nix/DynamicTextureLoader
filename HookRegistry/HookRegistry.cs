@@ -20,6 +20,9 @@ namespace HookRegistry
 
         public static string GetStatus(int entityId)
         {
+            if (entityId == 1) return "Game Entity";
+            if (entityId == 2) return "Player 1";
+            if (entityId == 3) return "Player 2";
             if (!Names.ContainsKey(entityId) || !Owners.ContainsKey(entityId))
             {
                 return null;
@@ -29,7 +32,7 @@ namespace HookRegistry
             {
                 ownerName = Names[HeroEntities[Owners[entityId]]];
             }
-            return String.Format("{0} ({1}#{2})", Names[entityId], ownerName, Owners[entityId]);
+            return String.Format("{0} ({1}#{2})", Names[entityId], ownerName, 1 + Owners[entityId]);
         }
 
         public static void SetName(int entityId, string cardID)
