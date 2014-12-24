@@ -7,7 +7,6 @@ using Mono.Cecil.PE;
 using System.IO;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-using UnityEngine;
 
 namespace CecilTest
 {
@@ -15,8 +14,12 @@ namespace CecilTest
     {
         static void Main(string[] args)
         {
-            var dllPath = @"Assembly-CSharp.dll";
-            var inStream = File.Open(dllPath, FileMode.Open, FileAccess.Read);
+            if (args.Length < 1)
+            {
+                Console.WriteLine("Usage: CecilTest [directory containing Assembly-CSharp.dll]");
+            }
+            const string dllPath = @"Assembly-CSharp.dll";
+            var inStream = File.Open(Path.Combine(args[0], dllPath), FileMode.Open, FileAccess.Read);
             var test = AssemblyDefinition.ReadAssembly(inStream);
             var testMod = test.MainModule;
             testMod.AssemblyReferences.Add(new AssemblyNameReference("HookRegistry", new Version(1, 0, 0, 0)));
@@ -24,25 +27,10 @@ namespace CecilTest
             var testTypes = testMod.Types.Where(t => t.Name.EndsWith("GameState"));
             foreach (var testType in testTypes)
             {
-                var testMethod = testType.Methods.Where(m => m.Name.EndsWith("OnPowerHistory")).First();
-                var testMethodBody = testMethod.Body;
-
-                hooker.AddHook(testMethod);
+                hooker.AddHook(testType.Methods.First(m => m.Name.EndsWith("OnPowerHistory")));
             }
             
             test.Write("Assembly-CSharp.out.dll");
-        }
-
-        static int DoItForMeCompiler(int a, int b, FileInfo test)
-        {
-            var obj = HookRegistry.HookRegistry.OnCall(a, test);
-            if (obj != null)
-            {
-                return (int)obj;
-            }
-
-            Console.WriteLine("Doing other things...");
-            return 42;
         }
     }
 
@@ -50,19 +38,17 @@ namespace CecilTest
     {
         public ModuleDefinition Module { get; private set; }
 
-        TypeReference hookRegistryType;
-        TypeReference rmhType;
-        MethodReference onCallMethod;
+        readonly TypeReference rmhType;
+        readonly MethodReference onCallMethod;
 
         public Hooker(ModuleDefinition module)
         {
             Module = module;
 
-            hookRegistryType = Module.Import(typeof(HookRegistry.HookRegistry));
+            Module.Import(typeof(HookRegistry.HookRegistry));
             rmhType = Module.Import(typeof(System.RuntimeMethodHandle));
             onCallMethod = Module.Import(
-                typeof(HookRegistry.HookRegistry).GetMethods()
-                .Where(mi => mi.Name.Contains("OnCall")).First());
+                typeof(HookRegistry.HookRegistry).GetMethods().First(mi => mi.Name.Contains("OnCall")));
         }
 
         public void AddHook(MethodDefinition method)

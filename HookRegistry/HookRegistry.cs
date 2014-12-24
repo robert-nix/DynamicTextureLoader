@@ -20,9 +20,12 @@ namespace HookRegistry
 
         public static string GetStatus(int entityId)
         {
-            if (entityId == 1) return "Game Entity";
-            if (entityId == 2) return "Player 1";
-            if (entityId == 3) return "Player 2";
+            if (entityId == 1)
+                return "Game Entity";
+            if (entityId == 2)
+                return "Player 1";
+            if (entityId == 3)
+                return "Player 2";
             if (!Names.ContainsKey(entityId) || !Owners.ContainsKey(entityId))
             {
                 return null;
@@ -44,10 +47,10 @@ namespace HookRegistry
             }
             else
             {
-                DefLoader.Get().LoadEntityDef(cardID, (cardId, def, data) =>
-                {
-                    Names[entityId] = def.GetName();
-                });
+                DefLoader.Get().LoadFullDef(cardID, (cardId, def, data) =>
+                    {
+                        Names[entityId] = def.GetEntityDef().GetName();
+                    });
             }
         }
 
@@ -88,21 +91,21 @@ namespace HookRegistry
 
         static Dictionary<GAME_TAG, Type> TypedTags = new Dictionary<GAME_TAG, Type>
         {
-            {GAME_TAG.STATE, typeof(TAG_STATE)},
-            {GAME_TAG.ZONE, typeof(TAG_ZONE)},
-            {GAME_TAG.STEP, typeof(TAG_STEP)},
-            {GAME_TAG.NEXT_STEP, typeof(TAG_STEP)},
-            {GAME_TAG.PLAYSTATE, typeof(TAG_PLAYSTATE)},
-            {GAME_TAG.CARDTYPE, typeof(TAG_CARDTYPE)},
-            {GAME_TAG.MULLIGAN_STATE, typeof(TAG_MULLIGAN)},
-            {GAME_TAG.CARD_SET, typeof(TAG_CARD_SET)},
-            {GAME_TAG.CLASS, typeof(TAG_CLASS)},
-            {GAME_TAG.RARITY, typeof(TAG_RARITY)},
-            {GAME_TAG.FACTION, typeof(TAG_FACTION)},
-            {GAME_TAG.CARDRACE, typeof(TAG_RACE)},
-            {GAME_TAG.ENCHANTMENT_BIRTH_VISUAL, typeof(TAG_ENCHANTMENT_VISUAL)},
-            {GAME_TAG.ENCHANTMENT_IDLE_VISUAL, typeof(TAG_ENCHANTMENT_VISUAL)},
-            {GAME_TAG.GOLD_REWARD_STATE, typeof(TAG_GOLD_REWARD_STATE)}
+            { GAME_TAG.STATE, typeof(TAG_STATE) },
+            { GAME_TAG.ZONE, typeof(TAG_ZONE) },
+            { GAME_TAG.STEP, typeof(TAG_STEP) },
+            { GAME_TAG.NEXT_STEP, typeof(TAG_STEP) },
+            { GAME_TAG.PLAYSTATE, typeof(TAG_PLAYSTATE) },
+            { GAME_TAG.CARDTYPE, typeof(TAG_CARDTYPE) },
+            { GAME_TAG.MULLIGAN_STATE, typeof(TAG_MULLIGAN) },
+            { GAME_TAG.CARD_SET, typeof(TAG_CARD_SET) },
+            { GAME_TAG.CLASS, typeof(TAG_CLASS) },
+            { GAME_TAG.RARITY, typeof(TAG_RARITY) },
+            { GAME_TAG.FACTION, typeof(TAG_FACTION) },
+            { GAME_TAG.CARDRACE, typeof(TAG_RACE) },
+            { GAME_TAG.ENCHANTMENT_BIRTH_VISUAL, typeof(TAG_ENCHANTMENT_VISUAL) },
+            { GAME_TAG.ENCHANTMENT_IDLE_VISUAL, typeof(TAG_ENCHANTMENT_VISUAL) },
+            { GAME_TAG.GOLD_REWARD_STATE, typeof(TAG_GOLD_REWARD_STATE) }
         };
     }
 
@@ -137,7 +140,7 @@ namespace HookRegistry
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new ConverterIsWriteOnlyException();
         }
     }
 
@@ -150,7 +153,7 @@ namespace HookRegistry
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new ConverterIsWriteOnlyException();
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -189,13 +192,13 @@ namespace HookRegistry
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new ConverterIsWriteOnlyException();
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             var entity = value as Network.Entity;
-            if (entity.CardID != null && entity.CardID != string.Empty)
+            if (!string.IsNullOrEmpty(entity.CardID))
             {
                 EntityDB.SetName(entity.ID, entity.CardID);
             }
@@ -233,7 +236,7 @@ namespace HookRegistry
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new ConverterIsWriteOnlyException();
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -281,7 +284,7 @@ namespace HookRegistry
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new ConverterIsWriteOnlyException();
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -299,7 +302,7 @@ namespace HookRegistry
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new ConverterIsWriteOnlyException();
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
@@ -308,10 +311,11 @@ namespace HookRegistry
         }
     }
 
-    public class HookRegistry
+    public static class HookRegistry
     {
         public static TextWriter log;
-        static JsonSerializer test;
+        static readonly JsonSerializer test;
+
         public static object OnCall(params object[] args)
         {
             if (args.Length >= 1)
@@ -349,5 +353,10 @@ namespace HookRegistry
             test.Converters.Add(new CreateGameSerializer());
             test.Converters.Add(new PowTypeSerializer());
         }
+    }
+
+    public class ConverterIsWriteOnlyException : NotImplementedException
+    {
+
     }
 }
