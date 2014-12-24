@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 VisualStudioVersion = 12.0.21005.1
@@ -25,6 +25,7 @@ Global
 	GlobalSection(MonoDevelopProperties) = preSolution
 		Policies = $0
 		$0.TextStylePolicy = $1
+		$1.FileWidth = 120
 		$1.inheritsSet = VisualStudio
 		$1.inheritsScope = text/plain
 		$1.scope = text/x-csharp
@@ -50,12 +51,29 @@ Global
 		$2.BeforeConstructorDeclarationParentheses = False
 		$2.NewLineBeforeConstructorInitializerColon = NewLine
 		$2.NewLineAfterConstructorInitializerColon = SameLine
+		$2.BeforeIndexerDeclarationBracket = False
 		$2.BeforeDelegateDeclarationParentheses = False
+		$2.AfterDelegateDeclarationParameterComma = True
 		$2.NewParentheses = False
 		$2.SpacesBeforeBrackets = False
+		$2.NewLineAferMethodCallOpenParentheses = SameLine
+		$2.AlignToFirstMethodCallArgument = True
+		$2.NewLineAferMethodDeclarationOpenParentheses = SameLine
+		$2.MethodDeclarationClosingParenthesesOnNewLine = SameLine
+		$2.NewLineAferIndexerDeclarationOpenBracket = SameLine
+		$2.IndexerDeclarationClosingBracketOnNewLine = SameLine
+		$2.NewLineAferIndexerOpenBracket = SameLine
+		$2.AlignToFirstIndexerArgument = True
 		$2.inheritsSet = Mono
 		$2.inheritsScope = text/x-csharp
 		$2.scope = text/x-csharp
+		$0.TextStylePolicy = $3
+		$3.FileWidth = 120
+		$3.TabsToSpaces = False
+		$3.EolMarker = Unix
+		$3.inheritsSet = VisualStudio
+		$3.inheritsScope = text/plain
+		$3.scope = text/plain
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
